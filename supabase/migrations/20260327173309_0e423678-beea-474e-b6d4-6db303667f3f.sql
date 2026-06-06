@@ -1,0 +1,1 @@
+CREATE POLICY "planos_public_read" ON public.planos FOR SELECT TO anon USING (ativo = true);

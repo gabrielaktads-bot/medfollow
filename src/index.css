@@ -1,0 +1,74 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 195 30% 98%;
+    --foreground: 210 25% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 210 25% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 210 25% 15%;
+
+    --primary: 173 58% 39%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 190 30% 93%;
+    --secondary-foreground: 210 25% 20%;
+
+    --muted: 200 15% 95%;
+    --muted-foreground: 210 10% 45%;
+
+    --accent: 173 40% 92%;
+    --accent-foreground: 173 58% 25%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 200 15% 90%;
+    --input: 200 15% 90%;
+    --ring: 173 58% 39%;
+
+    --radius: 0.75rem;
+
+    --sidebar-bg: 173 25% 97%;
+    --sidebar-fg: 210 20% 30%;
+    --sidebar-active: 173 58% 39%;
+    --sidebar-active-fg: 0 0% 100%;
+    --sidebar-hover: 173 30% 94%;
+
+    --medical-success: 152 60% 42%;
+    --medical-warning: 38 92% 50%;
+    --medical-danger: 0 72% 51%;
+    --medical-info: 207 90% 54%;
+
+    --sidebar-background: 173 25% 97%;
+    --sidebar-foreground: 210 20% 30%;
+    --sidebar-primary: 173 58% 39%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 173 30% 94%;
+    --sidebar-accent-foreground: 173 58% 25%;
+    --sidebar-border: 173 15% 90%;
+    --sidebar-ring: 173 58% 39%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+}
+
+@layer utilities {
+  .sidebar-gradient {
+    background: linear-gradient(180deg, hsl(173 25% 97%) 0%, hsl(190 30% 95%) 100%);
+  }
+}

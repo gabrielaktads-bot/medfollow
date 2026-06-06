@@ -1,0 +1,1 @@
+ALTER TABLE public.agente_config ADD COLUMN temperatura numeric NOT NULL DEFAULT 0.7;
