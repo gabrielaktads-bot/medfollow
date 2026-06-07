@@ -107,8 +107,10 @@ const DashboardLayout = ({ navItems, title, subtitle }: DashboardLayoutProps) =>
         </header>
 
         {/* Page content */}
-        <main className="flex-1 overflow-y-auto p-4 lg:p-6">
-          <Outlet />
+        <main className="flex-1 overflow-y-auto bg-background p-4 lg:p-6">
+          <div key={location.pathname} className="animate-in fade-in duration-200">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>

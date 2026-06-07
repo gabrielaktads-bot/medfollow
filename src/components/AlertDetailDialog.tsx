@@ -127,7 +127,7 @@ const AlertDetailDialog = ({ open, onOpenChange, notificacao, onMarkAsRead, onUn
 
           {/* Chat history */}
           {showChat && (
-            <ScrollArea className="flex-1 min-h-0 border rounded-lg p-3">
+            <ScrollArea className="h-[42vh] border rounded-lg p-3">
               {chatLoading ? (
                 <div className="space-y-3 py-4">
                   {[1, 2, 3].map((i) => <Skeleton key={i} className="h-10 w-3/4" />)}

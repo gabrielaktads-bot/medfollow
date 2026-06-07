@@ -19,6 +19,7 @@ const ESPECIALIDADES = [
 ];
 import { useCheckEmail } from "@/hooks/useCheckEmail";
 import { useDoctors, type Doctor } from "@/hooks/useDoctors";
+import { usePatients } from "@/hooks/usePatients";
 import { useRole } from "@/contexts/RoleContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -36,6 +37,7 @@ interface DoctorFormData {
 
 const ClinicDoctors = () => {
   const { doctors, isLoading } = useDoctors();
+  const { patients } = usePatients();
   const { activeCadastro, refetchCadastros } = useRole();
   const clinicaId = activeCadastro?.clinica_id;
   const queryClient = useQueryClient();
@@ -245,7 +247,7 @@ const ClinicDoctors = () => {
                   <TableCell>{d.especialidades || "—"}</TableCell>
                   <TableCell className="text-sm">{d.conselho || "—"}</TableCell>
                   <TableCell>{d.telefone || "—"}</TableCell>
-                  <TableCell>{d.pacientes?.length || 0}</TableCell>
+                  <TableCell>{patients.filter(p => p.medicos?.includes(d.id)).length}</TableCell>
                   <TableCell><Badge variant={d.ativo ? "default" : "secondary"}>{d.ativo ? "Ativo" : "Inativo"}</Badge></TableCell>
                   <TableCell className="text-right space-x-1">
                     <Button variant="ghost" size="icon" onClick={() => openEdit(d)} title="Editar">

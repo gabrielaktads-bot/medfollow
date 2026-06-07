@@ -12,7 +12,7 @@ import { toast } from "@/hooks/use-toast";
 import { useSubscription } from "@/hooks/useSubscription";
 import { CreditCard, ExternalLink, Check, Lock, Upload, Building2, Clock } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { maskPhone, maskCNPJ } from "@/lib/masks";
+import { maskPhone, maskCNPJ, maskCEP } from "@/lib/masks";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import type { HorarioAtendimento } from "@/hooks/useClinics";
@@ -247,7 +247,7 @@ const ClinicAccount = () => {
         <Separator />
         <h4 className="font-medium text-sm text-muted-foreground">Endereço</h4>
         <div className="grid gap-3 sm:grid-cols-2">
-          <div><Label>CEP</Label><Input value={cep} onChange={(e) => setCep(e.target.value)} className="mt-1" /></div>
+          <div><Label>CEP</Label><Input value={cep} onChange={(e) => setCep(maskCEP(e.target.value))} placeholder="00000-000" className="mt-1" /></div>
           <div><Label>Rua</Label><Input value={rua} onChange={(e) => setRua(e.target.value)} className="mt-1" /></div>
           <div><Label>Número</Label><Input value={numeroRua} onChange={(e) => setNumeroRua(e.target.value)} className="mt-1" /></div>
           <div><Label>Complemento</Label><Input value={complemento} onChange={(e) => setComplemento(e.target.value)} className="mt-1" /></div>
@@ -303,7 +303,7 @@ const ClinicAccount = () => {
             <Separator />
             <h4 className="font-medium text-sm text-muted-foreground">Endereço da Clínica</h4>
             <div className="grid gap-3 sm:grid-cols-2">
-              <div><Label>CEP</Label><Input value={clinica.cep || ""} onChange={(e) => setClinica({ ...clinica, cep: e.target.value })} className="mt-1" /></div>
+              <div><Label>CEP</Label><Input value={clinica.cep || ""} onChange={(e) => setClinica({ ...clinica, cep: maskCEP(e.target.value) })} placeholder="00000-000" className="mt-1" /></div>
               <div><Label>Rua</Label><Input value={clinica.rua || ""} onChange={(e) => setClinica({ ...clinica, rua: e.target.value })} className="mt-1" /></div>
               <div><Label>Número</Label><Input value={clinica.numero_da_rua || ""} onChange={(e) => setClinica({ ...clinica, numero_da_rua: e.target.value })} className="mt-1" /></div>
               <div><Label>Complemento</Label><Input value={clinica.complemento || ""} onChange={(e) => setClinica({ ...clinica, complemento: e.target.value })} className="mt-1" /></div>
