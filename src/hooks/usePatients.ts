@@ -13,6 +13,8 @@ export interface Patient {
   data_de_nascimento: string | null;
   clinica_id: string | null;
   ativo: boolean;
+  bloqueio_chat: boolean | null;
+  bloqueio_agendamento: boolean | null;
   created_at: string;
   informacoes_adicionais: string | null;
   cargo: string | null;
@@ -64,7 +66,7 @@ export const usePatients = () => {
     queryFn: async () => {
       if (!cadastroId) return [];
 
-      const selectFields = "id, nome, sobrenome, telefone, genero, data_de_nascimento, clinica_id, ativo, created_at, informacoes_adicionais, cargo, bairro, cep, cidade, complemento, estado, foto, numero_da_rua, rua, medicos, user_id";
+      const selectFields = "id, nome, sobrenome, telefone, genero, data_de_nascimento, clinica_id, ativo, bloqueio_chat, bloqueio_agendamento, created_at, informacoes_adicionais, cargo, bairro, cep, cidade, complemento, estado, foto, numero_da_rua, rua, medicos, user_id";
 
       if (isClinicRole && clinicaId) {
         const { data, error } = await supabase
@@ -279,19 +281,20 @@ export const usePatients = () => {
   });
 
   const togglePatientStatus = useMutation({
-    mutationFn: async ({ id, ativo }: { id: string; ativo: boolean }) => {
+    mutationFn: async ({ id, ativo, bloqueio_chat, bloqueio_agendamento }: { id: string; ativo: boolean; bloqueio_chat: boolean; bloqueio_agendamento: boolean }) => {
       const { error } = await supabase
         .from("cadastros")
-        .update({ ativo })
+        .update({ ativo, bloqueio_chat, bloqueio_agendamento })
         .eq("id", id);
 
       if (error) throw error;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["patients"] });
-      toast({ title: variables.ativo ? "Paciente reativado" : "Paciente pausado" });
+      const hasBlock = !variables.ativo || variables.bloqueio_chat || variables.bloqueio_agendamento;
+      toast({ title: hasBlock ? "Bloqueios salvos" : "Paciente reativado" });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({ title: "Erro ao alterar status", description: error.message, variant: "destructive" });
     },
   });

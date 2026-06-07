@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { X, Upload, CheckCircle2, UserPlus } from "lucide-react";
+import { X, Upload, CheckCircle2, UserPlus, AlertCircle } from "lucide-react";
 import { maskPhone, maskCEP } from "@/lib/masks";
 import { supabase } from "@/integrations/supabase/client";
 import { useRole } from "@/contexts/RoleContext";
@@ -66,6 +66,30 @@ const PatientFormDialog = ({ open, onOpenChange, patient, onSubmit, isLoading }:
       return data || [];
     },
     enabled: !!clinicaId && open,
+  });
+
+  const isEditing = !!patient;
+
+  // Check if email is already registered as a patient in this clinic
+  const { data: isDuplicatePatient } = useQuery({
+    queryKey: ["patient-duplicate-check", form.email, clinicaId],
+    queryFn: async () => {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("email", form.email!.trim())
+        .maybeSingle();
+      if (!profile?.id) return false;
+      const { data: existing } = await supabase
+        .from("cadastros")
+        .select("id")
+        .eq("user_id", profile.id)
+        .eq("cargo", "paciente")
+        .eq("clinica_id", clinicaId!)
+        .maybeSingle();
+      return !!existing;
+    },
+    enabled: emailExists === true && !!form.email?.trim() && !!clinicaId && !isEditing,
   });
 
   // Fetch patient's email from profiles if editing
@@ -143,8 +167,6 @@ const PatientFormDialog = ({ open, onOpenChange, patient, onSubmit, isLoading }:
     onSubmit(patient ? { ...form, id: patient.id } : form);
   };
 
-  const isEditing = !!patient;
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg max-h-[90vh] flex flex-col p-0">
@@ -181,13 +203,18 @@ const PatientFormDialog = ({ open, onOpenChange, patient, onSubmit, isLoading }:
                   disabled={isEditing}
                   className={`mt-1 ${isEditing ? "bg-muted cursor-not-allowed" : ""}`}
                 />
-                {!isEditing && form.email?.trim() && emailExists !== null && (
+                {!isEditing && form.email?.trim() && emailExists !== null && !isDuplicatePatient && (
                   <p className={`text-xs mt-1 flex items-center gap-1 ${emailExists ? "text-green-600" : "text-blue-600"}`}>
                     {emailExists ? (
                       <><CheckCircle2 className="h-3 w-3" /> Usuário já existe no sistema</>
                     ) : (
                       <><UserPlus className="h-3 w-3" /> Novo usuário — defina uma senha abaixo</>
                     )}
+                  </p>
+                )}
+                {!isEditing && isDuplicatePatient && (
+                  <p className="text-xs mt-1 flex items-center gap-1 text-destructive">
+                    <AlertCircle className="h-3 w-3" /> Este e-mail já está cadastrado como paciente nesta clínica.
                   </p>
                 )}
                 {checkingEmail && <p className="text-xs mt-1 text-muted-foreground">Verificando...</p>}
@@ -343,7 +370,7 @@ const PatientFormDialog = ({ open, onOpenChange, patient, onSubmit, isLoading }:
         </ScrollArea>
         <DialogFooter className="px-6 pb-6">
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button type="submit" form="patient-form" disabled={isLoading || !form.nome.trim()}>
+          <Button type="submit" form="patient-form" disabled={isLoading || !form.nome.trim() || isDuplicatePatient === true}>
             {isLoading ? "Salvando..." : isEditing ? "Salvar" : "Cadastrar"}
           </Button>
         </DialogFooter>

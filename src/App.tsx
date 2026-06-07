@@ -69,7 +69,13 @@ import {
   Bot,
 } from "lucide-react";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 30,
+    },
+  },
+});
 
 const adminNav = [
   { title: "Dashboard", path: "/admin/dashboard", icon: LayoutDashboard },

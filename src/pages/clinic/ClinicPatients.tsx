@@ -3,9 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Eye, Pencil, Pause, Play, Users, MessageCircle, Search } from "lucide-react";
+import { Eye, Pencil, Users, MessageCircle, Search, ShieldOff, ShieldCheck } from "lucide-react";
 import { usePatients, type Patient, type PatientFormData } from "@/hooks/usePatients";
 import PatientFormDialog from "@/components/PatientFormDialog";
 import ChatHistoryDialog from "@/components/ChatHistoryDialog";
@@ -18,6 +21,13 @@ const ClinicPatients = () => {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [historyPatient, setHistoryPatient] = useState<Patient | null>(null);
   const [search, setSearch] = useState("");
+  const [pauseOpen, setPauseOpen] = useState(false);
+  const [pausePatient, setPausePatient] = useState<Patient | null>(null);
+  const [pauseForm, setPauseForm] = useState({
+    bloquear_login: false,
+    bloqueio_chat: false,
+    bloqueio_agendamento: false,
+  });
 
   const filtered = useMemo(() => {
     if (!search.trim()) return patients;
@@ -26,6 +36,34 @@ const ClinicPatients = () => {
       `${p.nome} ${p.sobrenome || ""} ${p.telefone || ""}`.toLowerCase().includes(q)
     );
   }, [patients, search]);
+
+  const openPauseDialog = (p: Patient) => {
+    setPausePatient(p);
+    setPauseForm({
+      bloquear_login: !p.ativo,
+      bloqueio_chat: p.bloqueio_chat ?? false,
+      bloqueio_agendamento: p.bloqueio_agendamento ?? false,
+    });
+    setPauseOpen(true);
+  };
+
+  const handleSavePause = () => {
+    if (!pausePatient) return;
+    togglePatientStatus.mutate({
+      id: pausePatient.id,
+      ativo: !pauseForm.bloquear_login,
+      bloqueio_chat: pauseForm.bloqueio_chat,
+      bloqueio_agendamento: pauseForm.bloqueio_agendamento,
+    }, { onSuccess: () => setPauseOpen(false) });
+  };
+
+  const getStatusBadge = (p: Patient) => {
+    if (!p.ativo) return <Badge variant="destructive">Login bloqueado</Badge>;
+    if (p.bloqueio_chat || p.bloqueio_agendamento) return <Badge variant="secondary" className="text-amber-600">Bloqueios ativos</Badge>;
+    return <Badge variant="default">Ativo</Badge>;
+  };
+
+  const hasAnyBlock = (p: Patient) => !p.ativo || p.bloqueio_chat || p.bloqueio_agendamento;
 
   const handleSubmit = (data: PatientFormData & { id?: string }) => {
     if (data.id) {
@@ -89,15 +127,11 @@ const ClinicPatients = () => {
             </TableHeader>
             <TableBody>
               {filtered.map((p) => (
-                <TableRow key={p.id} className={!p.ativo ? "opacity-60" : ""}>
+                <TableRow key={p.id} className={hasAnyBlock(p) ? "opacity-60" : ""}>
                   <TableCell className="font-medium cursor-pointer hover:underline" onClick={() => navigate(`/clinic/patients/${p.id}`)}>{p.nome} {p.sobrenome || ""}</TableCell>
                   <TableCell>{p.telefone || "—"}</TableCell>
                   <TableCell className="capitalize">{p.genero || "—"}</TableCell>
-                  <TableCell>
-                    <Badge variant={p.ativo ? "default" : "secondary"}>
-                      {p.ativo ? "Ativo" : "Pausado"}
-                    </Badge>
-                  </TableCell>
+                  <TableCell>{getStatusBadge(p)}</TableCell>
                   <TableCell className="text-right space-x-1">
                     <Button
                       variant="ghost"
@@ -116,10 +150,12 @@ const ClinicPatients = () => {
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => togglePatientStatus.mutate({ id: p.id, ativo: !p.ativo })}
-                      title={p.ativo ? "Pausar" : "Reativar"}
+                      onClick={() => openPauseDialog(p)}
+                      title="Gerenciar bloqueios"
                     >
-                      {p.ativo ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                      {hasAnyBlock(p)
+                        ? <ShieldOff className="h-4 w-4 text-amber-500" />
+                        : <ShieldCheck className="h-4 w-4" />}
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -131,6 +167,59 @@ const ClinicPatients = () => {
           </Table>
         </div>
       )}
+
+      {/* Diálogo de bloqueio */}
+      <Dialog open={pauseOpen} onOpenChange={setPauseOpen}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Gerenciar Bloqueios</DialogTitle>
+            <DialogDescription>
+              Selecione os bloqueios para {pausePatient?.nome} {pausePatient?.sobrenome || ""}.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="flex items-start gap-3">
+              <Checkbox
+                id="bloquear_login"
+                checked={pauseForm.bloquear_login}
+                onCheckedChange={(v) => setPauseForm(f => ({ ...f, bloquear_login: !!v }))}
+              />
+              <div className="grid gap-1">
+                <label htmlFor="bloquear_login" className="text-sm font-medium cursor-pointer">Bloquear login</label>
+                <p className="text-xs text-muted-foreground">Impede o paciente de acessar o sistema.</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <Checkbox
+                id="bloqueio_chat"
+                checked={pauseForm.bloqueio_chat}
+                onCheckedChange={(v) => setPauseForm(f => ({ ...f, bloqueio_chat: !!v }))}
+              />
+              <div className="grid gap-1">
+                <label htmlFor="bloqueio_chat" className="text-sm font-medium cursor-pointer">Ocultar chat</label>
+                <p className="text-xs text-muted-foreground">O chat não ficará visível para o paciente.</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <Checkbox
+                id="bloqueio_agendamento"
+                checked={pauseForm.bloqueio_agendamento}
+                onCheckedChange={(v) => setPauseForm(f => ({ ...f, bloqueio_agendamento: !!v }))}
+              />
+              <div className="grid gap-1">
+                <label htmlFor="bloqueio_agendamento" className="text-sm font-medium cursor-pointer">Impedir agendamento</label>
+                <p className="text-xs text-muted-foreground">Nenhum médico ou proprietário poderá agendar consultas para este paciente.</p>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPauseOpen(false)}>Cancelar</Button>
+            <Button onClick={handleSavePause} disabled={togglePatientStatus.isPending}>
+              {togglePatientStatus.isPending ? "Salvando..." : "Salvar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <PatientFormDialog
         open={formOpen}

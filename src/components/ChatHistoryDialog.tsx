@@ -35,7 +35,7 @@ const ChatHistoryDialog = ({ open, onOpenChange, pacienteId, pacienteNome }: Cha
           <DialogTitle>Histórico de Chat — {pacienteNome}</DialogTitle>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 min-h-0 pr-4">
+        <ScrollArea className="h-[55vh] pr-4">
           {isLoading ? (
             <div className="space-y-3 py-4">
               {[1, 2, 3].map((i) => <Skeleton key={i} className="h-10 w-3/4" />)}

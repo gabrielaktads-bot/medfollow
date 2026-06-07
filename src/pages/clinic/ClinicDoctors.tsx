@@ -45,6 +45,8 @@ const ClinicDoctors = () => {
   const [editing, setEditing] = useState<Doctor | null>(null);
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState("");
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmDoctor, setConfirmDoctor] = useState<Doctor | null>(null);
   const [form, setForm] = useState<DoctorFormData>({
     nome: "", sobrenome: "", especialidades: "", conselho: "", telefone: "", email: "", password: "",
   });
@@ -249,7 +251,7 @@ const ClinicDoctors = () => {
                     <Button variant="ghost" size="icon" onClick={() => openEdit(d)} title="Editar">
                       <Pencil className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => toggleStatus(d)} title={d.ativo ? "Desativar" : "Reativar"}>
+                    <Button variant="ghost" size="icon" onClick={() => { setConfirmDoctor(d); setConfirmOpen(true); }} title={d.ativo ? "Desativar" : "Reativar"}>
                       {d.ativo ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
                     </Button>
                   </TableCell>
@@ -262,6 +264,28 @@ const ClinicDoctors = () => {
           </Table>
         </div>
       )}
+
+      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>{confirmDoctor?.ativo ? "Desativar médico" : "Reativar médico"}</DialogTitle>
+            <DialogDescription>
+              {confirmDoctor?.ativo
+                ? `Deseja desativar ${confirmDoctor?.nome} ${confirmDoctor?.sobrenome || ""}? O médico perderá o acesso ao sistema.`
+                : `Deseja reativar ${confirmDoctor?.nome} ${confirmDoctor?.sobrenome || ""}? O médico voltará a ter acesso ao sistema.`}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmOpen(false)}>Cancelar</Button>
+            <Button
+              variant={confirmDoctor?.ativo ? "destructive" : "default"}
+              onClick={() => { if (confirmDoctor) { toggleStatus(confirmDoctor); setConfirmOpen(false); } }}
+            >
+              {confirmDoctor?.ativo ? "Desativar" : "Reativar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={formOpen} onOpenChange={setFormOpen}>
         <DialogContent className="sm:max-w-md">
