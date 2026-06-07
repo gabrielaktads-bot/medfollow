@@ -31,7 +31,7 @@ const ClinicSchedule = () => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const handleCreate = () => {
-    if (!form.data_do_agendamento || !form.paciente_id) return;
+    if (!form.data_do_agendamento || !form.paciente_id || !form.medico_id) return;
     createAgendamento.mutate(form, {
       onSuccess: () => {
         setCreateOpen(false);
@@ -53,7 +53,7 @@ const ClinicSchedule = () => {
   };
 
   const handleUpdate = () => {
-    if (!editingId || !editForm.data_do_agendamento || !editForm.paciente_id) return;
+    if (!editingId || !editForm.data_do_agendamento || !editForm.paciente_id || !editForm.medico_id) return;
     updateAgendamento.mutate(
       { id: editingId, ...editForm },
       {
@@ -157,7 +157,7 @@ const ClinicSchedule = () => {
               </Select>
             </div>
             <div>
-              <Label>Médico (opcional)</Label>
+              <Label>Médico *</Label>
               <Select value={form.medico_id || ""} onValueChange={(v) => setForm({ ...form, medico_id: v })}>
                 <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione" /></SelectTrigger>
                 <SelectContent>{doctors.map((d) => <SelectItem key={d.id} value={d.id}>{d.nome} {d.sobrenome || ""}</SelectItem>)}</SelectContent>
@@ -186,7 +186,7 @@ const ClinicSchedule = () => {
               </Select>
             </div>
             <div>
-              <Label>Médico (opcional)</Label>
+              <Label>Médico *</Label>
               <Select value={editForm.medico_id || ""} onValueChange={(v) => setEditForm({ ...editForm, medico_id: v })}>
                 <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione" /></SelectTrigger>
                 <SelectContent>{doctors.map((d) => <SelectItem key={d.id} value={d.id}>{d.nome} {d.sobrenome || ""}</SelectItem>)}</SelectContent>

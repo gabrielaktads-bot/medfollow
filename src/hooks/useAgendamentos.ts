@@ -19,9 +19,11 @@ export interface Agendamento {
 export interface AgendamentoFormData {
   data_do_agendamento: string;
   hora?: string;
-  paciente_id: string;
+  hora_fim?: string;
+  paciente_id?: string | null;
   medico_id?: string;
   informacoes_adicionais?: string;
+  tipo?: "consulta" | "bloqueio";
 }
 
 export const useAgendamentos = () => {
@@ -84,7 +86,7 @@ export const useAgendamentos = () => {
         data_do_agendamento: form.data_do_agendamento,
         data: form.data_do_agendamento,
         hora: form.hora || null,
-        paciente_id: form.paciente_id,
+        paciente_id: form.paciente_id || null,
         medico_id: form.medico_id || (isClinicRole ? null : cadastroId),
         clinica_id: clinicaId || null,
         informacoes_adicionais: form.informacoes_adicionais || null,

@@ -4,7 +4,7 @@ import { useRole } from "@/contexts/RoleContext";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { FileText, Link as LinkIcon, ExternalLink } from "lucide-react";
+import { FileText, Link as LinkIcon, ExternalLink, CalendarDays } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface Diagnostico {
@@ -25,10 +25,19 @@ interface DocCompartilhado {
   created_at: string | null;
 }
 
+interface Consulta {
+  id: string;
+  data_do_agendamento: string | null;
+  hora: string | null;
+  medico_nome: string;
+  informacoes_adicionais: string | null;
+}
+
 const PatientProcedures = () => {
   const { activeCadastro, loading: roleLoading } = useRole();
   const [diagnosticos, setDiagnosticos] = useState<Diagnostico[]>([]);
   const [docs, setDocs] = useState<DocCompartilhado[]>([]);
+  const [consultas, setConsultas] = useState<Consulta[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -75,6 +84,36 @@ const PatientProcedures = () => {
         setDocs(docsData as any[]);
       }
 
+      // Fetch agendamentos (consultas) do paciente
+      const { data: agendData } = await supabase
+        .from("agendamentos")
+        .select("id, data_do_agendamento, hora, medico_id, informacoes_adicionais")
+        .eq("paciente_id", activeCadastro.id)
+        .order("data_do_agendamento", { ascending: true });
+
+      if (agendData) {
+        const medIds = [...new Set(agendData.filter(a => a.medico_id).map(a => a.medico_id!))];
+        let medMap: Record<string, string> = {};
+        if (medIds.length > 0) {
+          const { data: meds } = await supabase
+            .from("cadastros")
+            .select("id, nome, sobrenome")
+            .in("id", medIds);
+          if (meds) {
+            medMap = Object.fromEntries(
+              meds.map(m => [m.id, [m.nome, m.sobrenome].filter(Boolean).join(" ")])
+            );
+          }
+        }
+        setConsultas(agendData.map(a => ({
+          id: a.id,
+          data_do_agendamento: a.data_do_agendamento,
+          hora: (a as any).hora || null,
+          medico_nome: a.medico_id ? medMap[a.medico_id] || "Médico" : "Médico",
+          informacoes_adicionais: a.informacoes_adicionais,
+        })));
+      }
+
       setLoading(false);
     };
 
@@ -92,18 +131,81 @@ const PatientProcedures = () => {
 
   const hasDiag = diagnosticos.length > 0;
   const hasDocs = docs.length > 0;
+  const hasConsultas = consultas.length > 0;
+  const today = new Date().toISOString().slice(0, 10);
+  const proximasConsultas = consultas.filter(c => (c.data_do_agendamento || "") >= today);
+  const consultasPassadas = consultas.filter(c => (c.data_do_agendamento || "") < today);
 
   return (
     <div className="space-y-6 max-w-3xl">
       <h2 className="text-lg font-semibold">Meus Procedimentos</h2>
 
-      {!hasDiag && !hasDocs ? (
+      {!hasDiag && !hasDocs && !hasConsultas ? (
         <div className="rounded-lg border bg-card p-8 text-center">
           <FileText className="mx-auto h-10 w-10 text-muted-foreground mb-3" />
           <p className="text-muted-foreground">Nenhum procedimento encontrado.</p>
         </div>
       ) : (
         <>
+          {/* Minhas Consultas */}
+          {hasConsultas && (
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold text-muted-foreground flex items-center gap-1.5">
+                <CalendarDays className="h-4 w-4" /> Minhas Consultas
+              </h3>
+
+              {proximasConsultas.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Próximas</p>
+                  {proximasConsultas.map(c => (
+                    <div key={c.id} className="rounded-lg border border-primary/20 bg-primary/5 p-4 flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-3">
+                        <CalendarDays className="h-5 w-5 text-primary shrink-0" />
+                        <div>
+                          <p className="text-sm font-medium">
+                            {c.data_do_agendamento
+                              ? format(new Date(c.data_do_agendamento + "T12:00:00"), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
+                              : "Sem data"}
+                            {c.hora ? ` — ${c.hora}` : ""}
+                          </p>
+                          <p className="text-xs text-muted-foreground">Dr(a). {c.medico_nome}</p>
+                        </div>
+                      </div>
+                      {c.informacoes_adicionais && (
+                        <span className="text-xs text-muted-foreground text-right max-w-[180px] line-clamp-2">{c.informacoes_adicionais}</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {consultasPassadas.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Anteriores</p>
+                  {consultasPassadas.map(c => (
+                    <div key={c.id} className="rounded-lg border bg-card p-4 flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-3">
+                        <CalendarDays className="h-5 w-5 text-muted-foreground shrink-0" />
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">
+                            {c.data_do_agendamento
+                              ? format(new Date(c.data_do_agendamento + "T12:00:00"), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
+                              : "Sem data"}
+                            {c.hora ? ` — ${c.hora}` : ""}
+                          </p>
+                          <p className="text-xs text-muted-foreground">Dr(a). {c.medico_nome}</p>
+                        </div>
+                      </div>
+                      {c.informacoes_adicionais && (
+                        <span className="text-xs text-muted-foreground text-right max-w-[180px] line-clamp-2">{c.informacoes_adicionais}</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Documentos compartilhados */}
           {hasDocs && (
             <div className="space-y-3">
