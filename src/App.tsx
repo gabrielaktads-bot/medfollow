@@ -103,7 +103,6 @@ const clinicNav = [
 const doctorNav = [
   { title: "Dashboard", path: "/doctor/dashboard", icon: LayoutDashboard },
   { title: "Pacientes", path: "/doctor/patients", icon: Users },
-  { title: "Fluxos", path: "/doctor/flows", icon: GitBranch },
   { title: "Alertas", path: "/doctor/alerts", icon: AlertTriangle },
   { title: "Agenda", path: "/doctor/schedule", icon: CalendarDays },
   { title: "Conta", path: "/doctor/account", icon: UserCircle },
