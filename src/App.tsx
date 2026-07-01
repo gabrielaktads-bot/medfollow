@@ -10,6 +10,7 @@ import RoleRouter from "@/components/RoleRouter";
 import RoleGuard from "@/components/RoleGuard";
 
 import DashboardLayout from "@/components/DashboardLayout";
+import { useRole } from "@/contexts/RoleContext";
 import Auth from "@/pages/Auth";
 import Onboarding from "@/pages/Onboarding";
 import CheckoutSuccess from "@/pages/CheckoutSuccess";
@@ -114,6 +115,14 @@ const patientNav = [
   { title: "Chat IA", path: "/patient/chat", icon: MessageCircle },
 ];
 
+const PatientLayout = () => {
+  const { activeCadastro } = useRole();
+  const nav = activeCadastro?.bloqueio_chat
+    ? patientNav.filter(item => item.path !== "/patient/chat")
+    : patientNav;
+  return <DashboardLayout navItems={nav} title="Área do Paciente" subtitle="Paciente" />;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -172,7 +181,7 @@ const App = () => (
               </Route>
 
               {/* Patient */}
-              <Route path="/patient" element={<ProtectedRoute><RoleGuard allowedRoles={["paciente"]}><DashboardLayout navItems={patientNav} title="Área do Paciente" subtitle="Paciente" /></RoleGuard></ProtectedRoute>}>
+              <Route path="/patient" element={<ProtectedRoute><RoleGuard allowedRoles={["paciente"]}><PatientLayout /></RoleGuard></ProtectedRoute>}>
                 <Route index element={<Navigate to="procedures" replace />} />
                 <Route path="procedures" element={<PatientProcedures />} />
                 <Route path="profile" element={<PatientProfile />} />

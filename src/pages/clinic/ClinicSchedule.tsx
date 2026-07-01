@@ -153,7 +153,7 @@ const ClinicSchedule = () => {
               <Label>Paciente</Label>
               <Select value={form.paciente_id} onValueChange={(v) => setForm({ ...form, paciente_id: v })}>
                 <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione" /></SelectTrigger>
-                <SelectContent>{patients.map((p) => <SelectItem key={p.id} value={p.id}>{p.nome} {p.sobrenome || ""}</SelectItem>)}</SelectContent>
+                <SelectContent>{patients.filter(p => !p.bloqueio_agendamento).map((p) => <SelectItem key={p.id} value={p.id}>{p.nome} {p.sobrenome || ""}</SelectItem>)}</SelectContent>
               </Select>
             </div>
             <div>
@@ -182,7 +182,7 @@ const ClinicSchedule = () => {
               <Label>Paciente</Label>
               <Select value={editForm.paciente_id} onValueChange={(v) => setEditForm({ ...editForm, paciente_id: v })}>
                 <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione" /></SelectTrigger>
-                <SelectContent>{patients.map((p) => <SelectItem key={p.id} value={p.id}>{p.nome} {p.sobrenome || ""}</SelectItem>)}</SelectContent>
+                <SelectContent>{patients.filter(p => !p.bloqueio_agendamento).map((p) => <SelectItem key={p.id} value={p.id}>{p.nome} {p.sobrenome || ""}</SelectItem>)}</SelectContent>
               </Select>
             </div>
             <div>

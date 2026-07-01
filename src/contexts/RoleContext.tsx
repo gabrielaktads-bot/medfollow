@@ -10,6 +10,9 @@ interface Cadastro {
   nome: string;
   sobrenome: string | null;
   clinica_id: string | null;
+  ativo?: boolean | null;
+  bloqueio_chat?: boolean | null;
+  bloqueio_agendamento?: boolean | null;
 }
 
 interface RoleContextType {
@@ -38,7 +41,7 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
 
     const { data, error } = await supabase
       .from("cadastros")
-      .select("id, cargo, nome, sobrenome, clinica_id")
+      .select("id, cargo, nome, sobrenome, clinica_id, ativo, bloqueio_chat, bloqueio_agendamento")
       .eq("user_id", user.id);
 
     if (error) {

@@ -135,7 +135,7 @@ const DoctorSchedule = () => {
               <Select value={form.paciente_id || ""} onValueChange={(v) => setForm({ ...form, paciente_id: v })}>
                 <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione o paciente" /></SelectTrigger>
                 <SelectContent>
-                  {patients.map((p) => (
+                  {patients.filter(p => !p.bloqueio_agendamento).map((p) => (
                     <SelectItem key={p.id} value={p.id}>{p.nome} {p.sobrenome || ""}</SelectItem>
                   ))}
                 </SelectContent>
