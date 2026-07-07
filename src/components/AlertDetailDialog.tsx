@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CheckCircle, MessageCircle, Bot, User } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -127,7 +126,7 @@ const AlertDetailDialog = ({ open, onOpenChange, notificacao, onMarkAsRead, onUn
 
           {/* Chat history */}
           {showChat && (
-            <ScrollArea className="h-[42vh] border rounded-lg p-3">
+            <div className="h-[42vh] overflow-y-auto border rounded-lg p-3">
               {chatLoading ? (
                 <div className="space-y-3 py-4">
                   {[1, 2, 3].map((i) => <Skeleton key={i} className="h-10 w-3/4" />)}
@@ -161,7 +160,7 @@ const AlertDetailDialog = ({ open, onOpenChange, notificacao, onMarkAsRead, onUn
                   ))}
                 </div>
               )}
-            </ScrollArea>
+            </div>
           )}
         </div>
       </DialogContent>

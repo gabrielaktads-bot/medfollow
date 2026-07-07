@@ -128,10 +128,10 @@ serve(async (req) => {
       const matchedWords = agenteConfig.palavras_criticas.filter((w: string) => inputLower.includes(w.toLowerCase()));
       if (matchedWords.length > 0) {
         const { data: medicos } = await supabaseAdmin
-          .from("cadastros").select("id").eq("clinica_id", clinicaId).eq("cargo", "medico").eq("ativo", true);
+          .from("cadastros").select("id, user_id").eq("clinica_id", clinicaId).eq("cargo", "medico").eq("ativo", true);
         if (medicos?.length) {
           await supabaseAdmin.from("notificacoes").insert(
-            medicos.map((m: { id: string }) => ({
+            medicos.map((m: { id: string; user_id: string | null }) => ({
               tipo: "palavra_critica",
               conteudo: `Paciente usou palavra(s) crítica(s): ${matchedWords.join(", ")}. Mensagem: "${input.substring(0, 200)}"`,
               paciente_id: pacienteId,
@@ -142,6 +142,46 @@ serve(async (req) => {
               vista: false,
             }))
           );
+
+          // Send email alerts via Resend
+          const resendApiKey = Deno.env.get("RESEND_API_KEY");
+          if (resendApiKey) {
+            const userIds = medicos
+              .map((m: { id: string; user_id: string | null }) => m.user_id)
+              .filter(Boolean) as string[];
+            for (const uid of userIds) {
+              try {
+                const { data: authUser } = await supabaseAdmin.auth.admin.getUserById(uid);
+                const doctorEmail = authUser?.user?.email;
+                if (!doctorEmail) continue;
+                await fetch("https://api.resend.com/emails", {
+                  method: "POST",
+                  headers: {
+                    Authorization: `Bearer ${resendApiKey}`,
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    from: "MedFollow <noreply@medfollow.app>",
+                    to: [doctorEmail],
+                    subject: `⚠️ Alerta: paciente ${pacienteNome} usou palavra(s) crítica(s)`,
+                    html: `
+                      <h2 style="color:#c0392b;">Alerta de Monitoramento — MedFollow</h2>
+                      <p>O paciente <strong>${pacienteNome}</strong> enviou uma mensagem contendo palavra(s) que requerem atenção:</p>
+                      <table style="border-collapse:collapse;width:100%;max-width:600px;">
+                        <tr><td style="padding:8px;font-weight:bold;width:180px;">Palavras detectadas:</td><td style="padding:8px;">${matchedWords.join(", ")}</td></tr>
+                        <tr style="background:#f9f9f9;"><td style="padding:8px;font-weight:bold;">Mensagem:</td><td style="padding:8px;">"${input.substring(0, 500)}"</td></tr>
+                      </table>
+                      <p style="margin-top:16px;">Acesse o sistema para verificar o histórico completo do paciente e tomar as medidas necessárias.</p>
+                      <hr style="border:none;border-top:1px solid #eee;margin:24px 0;">
+                      <p style="color:#888;font-size:12px;">MedFollow — Sistema de Acompanhamento de Pacientes</p>
+                    `,
+                  }),
+                });
+              } catch (emailErr) {
+                console.error("Resend email error for uid", uid, emailErr);
+              }
+            }
+          }
         }
       }
     }

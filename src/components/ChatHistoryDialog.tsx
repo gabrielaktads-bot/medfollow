@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Bot, User } from "lucide-react";
 
@@ -35,7 +34,7 @@ const ChatHistoryDialog = ({ open, onOpenChange, pacienteId, pacienteNome }: Cha
           <DialogTitle>Histórico de Chat — {pacienteNome}</DialogTitle>
         </DialogHeader>
 
-        <ScrollArea className="h-[55vh] pr-4">
+        <div className="h-[55vh] overflow-y-auto pr-4">
           {isLoading ? (
             <div className="space-y-3 py-4">
               {[1, 2, 3].map((i) => <Skeleton key={i} className="h-10 w-3/4" />)}
@@ -69,7 +68,7 @@ const ChatHistoryDialog = ({ open, onOpenChange, pacienteId, pacienteNome }: Cha
               ))}
             </div>
           )}
-        </ScrollArea>
+        </div>
       </DialogContent>
     </Dialog>
   );

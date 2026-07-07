@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
-import { ScrollArea } from "@/components/ui/scroll-area";
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import {
   ArrowLeft, Calendar, FileText, Stethoscope, Plus, Clock, User,
@@ -577,7 +577,7 @@ const PatientProntuario = () => {
           <h3 className="text-sm font-semibold flex items-center gap-2 mb-4"><MessageCircle className="h-4 w-4" /> Histórico de Chat com o Agente</h3>
           <Card>
             <CardContent className="p-0">
-              <ScrollArea className="h-[500px] p-4">
+              <div className="h-[500px] overflow-y-auto p-4">
                 {chatHistory.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-8">Nenhuma mensagem encontrada.</p>
                 ) : (
@@ -603,7 +603,7 @@ const PatientProntuario = () => {
                     ))}
                   </div>
                 )}
-              </ScrollArea>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
