@@ -25,5 +25,18 @@ export const maskCNPJ = (value: string): string => {
   return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8, 12)}-${digits.slice(12)}`;
 };
 
-export const maskCRM = (value: string): string =>
-  value.replace(/[^a-zA-Z0-9\/\-]/g, "").slice(0, 20).toUpperCase();
+export const maskCRM = (value: string): string => {
+  if (!value) return "";
+  let raw = value.toUpperCase();
+  // Strip the CRM/ prefix so we work only with UF + digits
+  if (raw.startsWith("CRM/")) raw = raw.slice(4);
+  else if (raw.startsWith("CRM")) raw = raw.slice(3);
+  // Remove all separators
+  raw = raw.replace(/[\s\-\/]/g, "");
+  // UF = first 2 letters; number = up to 6 digits
+  const uf = raw.replace(/[^A-Z]/g, "").slice(0, 2);
+  const num = raw.replace(/[^0-9]/g, "").slice(0, 6);
+  if (!uf) return "";
+  if (!num) return `CRM/${uf}`;
+  return `CRM/${uf} ${num}`;
+};
