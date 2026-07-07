@@ -34,10 +34,10 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
   const [activeRole, setActiveRole] = useState<RoleType | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchCadastros = useCallback(async (setInitialRole = true) => {
+  const fetchCadastros = useCallback(async (setInitialRole = true, showLoading = true) => {
     if (!user) return;
-    
-    if (setInitialRole) setLoading(true);
+
+    if (setInitialRole && showLoading) setLoading(true);
 
     const { data, error } = await supabase
       .from("cadastros")
@@ -108,7 +108,7 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
   }, [user, fetchCadastros]);
 
   const refetchCadastros = useCallback(async () => {
-    await fetchCadastros(false);
+    await fetchCadastros(true, false);
   }, [fetchCadastros]);
 
   const switchRole = async (role: RoleType) => {

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useRole } from "@/contexts/RoleContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,7 @@ import { maskPhone, maskCEP, maskCRM } from "@/lib/masks";
 const Onboarding = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { refetchCadastros } = useRole();
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<1 | 2>(1);
 
@@ -128,6 +130,7 @@ const Onboarding = () => {
         .eq("id", user.id);
 
       toast({ title: "Bem-vindo ao MedFollow! 🎉", description: "Sua conta foi configurada com sucesso." });
+      await refetchCadastros();
       navigate("/clinic/dashboard", { state: { showWelcome: true } });
     } catch (error: any) {
       console.error("Onboarding error:", error);
