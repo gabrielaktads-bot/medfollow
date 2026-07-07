@@ -20,8 +20,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      const nextUser = session?.user ?? null;
       setSession(session);
-      setUser(session?.user ?? null);
+      // Only update user reference when identity actually changes (prevents TOKEN_REFRESHED from causing cascading re-fetches)
+      setUser(prev => prev?.id === nextUser?.id ? prev : nextUser);
       setLoading(false);
     });
 

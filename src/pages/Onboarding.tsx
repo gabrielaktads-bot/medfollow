@@ -10,7 +10,8 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Stethoscope, Building2, MapPin, User, ArrowRight, CheckCircle2 } from "lucide-react";
-import { maskPhone, maskCEP, maskCRM } from "@/lib/masks";
+import { maskPhone, maskCEP } from "@/lib/masks";
+import CrmInput from "@/components/ui/CrmInput";
 
 const Onboarding = () => {
   const { user } = useAuth();
@@ -287,7 +288,7 @@ const Onboarding = () => {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="crm">CRM do responsável</Label>
-                  <Input id="crm" value={crm} onChange={(e) => setCrm(maskCRM(e.target.value))} placeholder="CRM/UF 000000" />
+                  <CrmInput value={crm} onChange={setCrm} />
                 </div>
               </div>
 

@@ -9,7 +9,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Stethoscope, Pencil, Pause, Play, CheckCircle2, UserPlus, Search } from "lucide-react";
-import { maskPhone, maskCRM } from "@/lib/masks";
+import { maskPhone } from "@/lib/masks";
+import CrmInput from "@/components/ui/CrmInput";
 
 const ESPECIALIDADES = [
   "Cardiologia","Clínica Geral","Dermatologia","Endocrinologia",
@@ -138,6 +139,22 @@ const ClinicDoctors = () => {
           if (fnError) throw new Error("Erro ao buscar/criar usuário: " + fnError.message);
           if (fnData?.error) throw new Error(fnData.error);
           userId = fnData?.user_id || null;
+
+          // Block duplicate: same user already has a medico cadastro in this clinic
+          if (userId) {
+            const { data: existing } = await supabase
+              .from("cadastros")
+              .select("id")
+              .eq("user_id", userId)
+              .eq("clinica_id", finalClinicaId)
+              .eq("cargo", "medico")
+              .maybeSingle();
+            if (existing) {
+              toast({ title: "Médico já cadastrado", description: "Este e-mail já possui um cadastro de médico nesta clínica.", variant: "destructive" });
+              setSaving(false);
+              return;
+            }
+          }
         }
 
         const { data, error } = await supabase
@@ -349,7 +366,7 @@ const ClinicDoctors = () => {
             )}
             <div>
               <Label>CRM / Conselho *</Label>
-              <Input value={form.conselho} onChange={(e) => setForm(f => ({ ...f, conselho: maskCRM(e.target.value) }))} placeholder="CRM/UF 000000" className="mt-1" />
+              <CrmInput value={form.conselho} onChange={(v) => setForm(f => ({ ...f, conselho: v }))} className="mt-1" />
             </div>
             <div>
               <Label>Especialidade</Label>

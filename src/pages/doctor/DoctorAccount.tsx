@@ -5,7 +5,8 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { maskPhone, maskCRM } from "@/lib/masks";
+import { maskPhone } from "@/lib/masks";
+import CrmInput from "@/components/ui/CrmInput";
 
 const ESPECIALIDADES = [
   "Cardiologia","Clínica Geral","Dermatologia","Endocrinologia",
@@ -81,7 +82,7 @@ const DoctorAccount = () => {
               </SelectContent>
             </Select>
           </div>
-          <div><Label>Conselho (CRM)</Label><Input value={conselho} onChange={(e) => setConselho(maskCRM(e.target.value))} placeholder="CRM/UF 000000" className="mt-1" /></div>
+          <div><Label>Conselho (CRM)</Label><CrmInput value={conselho} onChange={setConselho} className="mt-1" /></div>
           <div><Label>E-mail</Label><Input value={user?.email || ""} disabled className="mt-1" /></div>
           <div><Label>Telefone</Label><Input value={telefone} onChange={(e) => setTelefone(maskPhone(e.target.value))} placeholder="(11) 99999-9999" className="mt-1" /></div>
         </div>
