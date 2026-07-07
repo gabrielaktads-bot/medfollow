@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Stethoscope, Building2, MapPin, User, ArrowRight, CheckCircle2 } from "lucide-react";
+import { maskPhone, maskCEP, maskCRM } from "@/lib/masks";
 
 const Onboarding = () => {
   const { user } = useAuth();
@@ -194,7 +195,7 @@ const Onboarding = () => {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="telefone">Telefone</Label>
-                <Input id="telefone" value={telefone} onChange={(e) => setTelefone(e.target.value)} placeholder="(00) 00000-0000" />
+                <Input id="telefone" value={telefone} onChange={(e) => setTelefone(maskPhone(e.target.value))} placeholder="(00) 00000-0000" />
               </div>
 
               <Separator />
@@ -238,7 +239,7 @@ const Onboarding = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="userCep">CEP</Label>
-                  <Input id="userCep" value={userCep} onChange={(e) => setUserCep(e.target.value)} placeholder="00000-000" />
+                  <Input id="userCep" value={userCep} onChange={(e) => setUserCep(maskCEP(e.target.value))} placeholder="00000-000" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="userBairro">Bairro</Label>
@@ -283,7 +284,7 @@ const Onboarding = () => {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="crm">CRM do responsável</Label>
-                  <Input id="crm" value={crm} onChange={(e) => setCrm(e.target.value)} placeholder="CRM/UF 000000" />
+                  <Input id="crm" value={crm} onChange={(e) => setCrm(maskCRM(e.target.value))} placeholder="CRM/UF 000000" />
                 </div>
               </div>
 
@@ -306,7 +307,7 @@ const Onboarding = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="clinicaCep">CEP</Label>
-                  <Input id="clinicaCep" value={clinicaCep} onChange={(e) => setClinicaCep(e.target.value)} placeholder="00000-000" />
+                  <Input id="clinicaCep" value={clinicaCep} onChange={(e) => setClinicaCep(maskCEP(e.target.value))} placeholder="00000-000" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="clinicaBairro">Bairro</Label>
