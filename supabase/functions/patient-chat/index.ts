@@ -130,20 +130,19 @@ serve(async (req) => {
         const { data: medicos } = await supabaseAdmin
           .from("cadastros").select("id, user_id").eq("clinica_id", clinicaId).eq("cargo", "medico").eq("ativo", true);
         if (medicos?.length) {
-          await supabaseAdmin.from("notificacoes").insert(
-            medicos.map((m: { id: string; user_id: string | null }) => ({
-              tipo: "palavra_critica",
-              conteudo: `Paciente usou palavra(s) crítica(s): ${matchedWords.join(", ")}. Mensagem: "${input.substring(0, 200)}"`,
-              paciente_id: pacienteId,
-              medico_id: m.id,
-              prioridade: "alta",
-              urgencia: "alta",
-              status: "pendente",
-              vista: false,
-            }))
-          );
+          // One notification per critical-word event (not per doctor)
+          await supabaseAdmin.from("notificacoes").insert({
+            tipo: "palavra_critica",
+            conteudo: `Paciente usou palavra(s) crítica(s): ${matchedWords.join(", ")}. Mensagem: "${input.substring(0, 200)}"`,
+            paciente_id: pacienteId,
+            medico_id: null,
+            prioridade: "alta",
+            urgencia: "alta",
+            status: "pendente",
+            vista: false,
+          });
 
-          // Send email alerts via Resend
+          // Send email alerts via Resend to each doctor
           const resendApiKey = Deno.env.get("RESEND_API_KEY");
           if (resendApiKey) {
             const userIds = medicos
@@ -154,14 +153,14 @@ serve(async (req) => {
                 const { data: authUser } = await supabaseAdmin.auth.admin.getUserById(uid);
                 const doctorEmail = authUser?.user?.email;
                 if (!doctorEmail) continue;
-                await fetch("https://api.resend.com/emails", {
+                const resendRes = await fetch("https://api.resend.com/emails", {
                   method: "POST",
                   headers: {
                     Authorization: `Bearer ${resendApiKey}`,
                     "Content-Type": "application/json",
                   },
                   body: JSON.stringify({
-                    from: "MedFollow <noreply@medfollow.app>",
+                    from: "MedFollow <onboarding@resend.dev>",
                     to: [doctorEmail],
                     subject: `⚠️ Alerta: paciente ${pacienteNome} usou palavra(s) crítica(s)`,
                     html: `
@@ -177,10 +176,18 @@ serve(async (req) => {
                     `,
                   }),
                 });
+                if (!resendRes.ok) {
+                  const errBody = await resendRes.text();
+                  console.error("Resend API error for", doctorEmail, resendRes.status, errBody);
+                } else {
+                  console.log("Resend email sent to", doctorEmail);
+                }
               } catch (emailErr) {
-                console.error("Resend email error for uid", uid, emailErr);
+                console.error("Resend email exception for uid", uid, emailErr);
               }
             }
+          } else {
+            console.warn("RESEND_API_KEY not set — skipping email alerts");
           }
         }
       }
