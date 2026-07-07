@@ -12,6 +12,7 @@ export interface Doctor {
   telefone: string | null;
   ativo: boolean;
   pacientes: string[] | null;
+  user_id: string | null;
 }
 
 export const useDoctors = () => {
@@ -38,7 +39,7 @@ export const useDoctors = () => {
 
       const { data, error } = await supabase
         .from("cadastros")
-        .select("id, nome, sobrenome, especialidades, conselho, telefone, ativo, pacientes")
+        .select("id, nome, sobrenome, especialidades, conselho, telefone, ativo, pacientes, user_id")
         .eq("cargo", "medico")
         .eq("clinica_id", resolvedClinicaId)
         .order("nome");

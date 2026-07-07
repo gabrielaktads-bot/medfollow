@@ -142,18 +142,9 @@ export const usePatients = () => {
         userId = fnData?.user_id || null;
       }
 
-      // BUG-005: block duplicate patient email in same clinic
-      if (userId) {
-        const { data: existingPatient } = await supabase
-          .from("cadastros")
-          .select("id")
-          .eq("user_id", userId)
-          .eq("cargo", "paciente")
-          .eq("clinica_id", resolvedClinicaId)
-          .maybeSingle();
-        if (existingPatient) {
-          throw new Error("Já existe um paciente cadastrado com este e-mail nesta clínica.");
-        }
+      // BUG-005: block duplicate patient email in same clinic (local check avoids RLS issues)
+      if (userId && (patientsQuery.data || []).some((p) => p.user_id === userId)) {
+        throw new Error("Já existe um paciente cadastrado com este e-mail nesta clínica.");
       }
 
       const { data, error } = await supabase

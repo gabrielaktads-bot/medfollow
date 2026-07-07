@@ -140,20 +140,11 @@ const ClinicDoctors = () => {
           if (fnData?.error) throw new Error(fnData.error);
           userId = fnData?.user_id || null;
 
-          // Block duplicate: same user already has a medico cadastro in this clinic
-          if (userId) {
-            const { data: existing } = await supabase
-              .from("cadastros")
-              .select("id")
-              .eq("user_id", userId)
-              .eq("clinica_id", finalClinicaId)
-              .eq("cargo", "medico")
-              .maybeSingle();
-            if (existing) {
-              toast({ title: "Médico já cadastrado", description: "Este e-mail já possui um cadastro de médico nesta clínica.", variant: "destructive" });
-              setSaving(false);
-              return;
-            }
+          // Block duplicate: check against already-loaded doctors list (avoids RLS issues)
+          if (userId && doctors.some((d) => d.user_id === userId)) {
+            toast({ title: "Médico já cadastrado", description: "Este e-mail já possui um cadastro de médico nesta clínica.", variant: "destructive" });
+            setSaving(false);
+            return;
           }
         }
 
