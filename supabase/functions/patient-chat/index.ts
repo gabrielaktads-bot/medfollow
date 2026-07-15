@@ -160,7 +160,7 @@ serve(async (req) => {
                     "Content-Type": "application/json",
                   },
                   body: JSON.stringify({
-                    from: "MedFollow <onboarding@resend.dev>",
+                    from: "MedFollow <noreply@medfollow.com.br>",
                     to: [doctorEmail],
                     subject: `⚠️ Alerta: paciente ${pacienteNome} usou palavra(s) crítica(s)`,
                     html: `

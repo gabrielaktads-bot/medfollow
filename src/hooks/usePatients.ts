@@ -78,13 +78,14 @@ export const usePatients = () => {
 
         if (error) throw error;
         return (data || []) as Patient[];
-      } else if (isMedico && clinicaId) {
-        // Doctor: show patients from same clinic
+      } else if (isMedico && clinicaId && cadastroId) {
+        // Doctor: show only their own patients (medicos array contains their ID)
         const { data, error } = await supabase
           .from("cadastros")
           .select(selectFields)
           .eq("cargo", "paciente")
           .eq("clinica_id", clinicaId)
+          .contains("medicos", [cadastroId])
           .order("nome");
 
         if (error) throw error;

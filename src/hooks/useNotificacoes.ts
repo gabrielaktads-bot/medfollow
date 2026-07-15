@@ -34,9 +34,17 @@ export const useNotificacoes = () => {
         .select("*")
         .order("data_de_criacao", { ascending: false });
 
-      // For doctors: show alerts addressed to them OR clinic-level alerts (medico_id IS NULL)
+      // For doctors: scope to their own patients only
       if (isDoctor && cadastroId) {
-        queryBuilder = queryBuilder.or(`medico_id.eq.${cadastroId},medico_id.is.null`);
+        const { data: myPatients } = await supabase
+          .from("cadastros")
+          .select("id")
+          .eq("cargo", "paciente")
+          .contains("medicos", [cadastroId]);
+
+        const myPatientIds = (myPatients || []).map((p: { id: string }) => p.id);
+        if (myPatientIds.length === 0) return [];
+        queryBuilder = queryBuilder.in("paciente_id", myPatientIds);
       }
 
       const { data, error } = await queryBuilder;
@@ -44,8 +52,8 @@ export const useNotificacoes = () => {
 
       let filtered = data || [];
 
-      // Client-side filter for all non-admin roles: only show notifications for the active clinic
-      if (!isAdmin && clinicaId) {
+      // Client-side filter for clinic roles: only show notifications for the active clinic
+      if (!isAdmin && !isDoctor && clinicaId) {
         const { data: clinicCadastros } = await supabase
           .from("cadastros")
           .select("id")

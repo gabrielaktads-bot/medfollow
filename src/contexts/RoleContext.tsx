@@ -51,7 +51,7 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
     }
 
     const validCadastros = (data || []).filter(
-      (c) => c.cargo && VALID_ROLES.includes(c.cargo as RoleType) && c.ativo !== false
+      (c) => c.cargo && VALID_ROLES.includes(c.cargo as RoleType)
     );
 
     // For proprietário cadastros without clinica_id, resolve from clinicas table
@@ -105,6 +105,16 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
     fetchCadastros(true);
+  }, [user, fetchCadastros]);
+
+  // Re-check access when user returns to tab (catches deactivation while tab was in background)
+  useEffect(() => {
+    if (!user) return;
+    const handleVisibility = () => {
+      if (!document.hidden) fetchCadastros(true, false);
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => document.removeEventListener("visibilitychange", handleVisibility);
   }, [user, fetchCadastros]);
 
   const refetchCadastros = useCallback(async () => {
