@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,8 +16,24 @@ const Auth = () => {
   const [mode, setMode] = useState<"login" | "reset">("login");
   const [resetEmail, setResetEmail] = useState("");
   const [resetSent, setResetSent] = useState(false);
+  const [recoveryMode, setRecoveryMode] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [newPasswordConfirm, setNewPasswordConfirm] = useState("");
   const { signIn } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Detect recovery token in URL hash (fires before onAuthStateChange in some browsers)
+    if (window.location.hash.includes("type=recovery")) {
+      setRecoveryMode(true);
+    }
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") {
+        setRecoveryMode(true);
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,6 +45,28 @@ const Auth = () => {
       navigate("/");
     }
     setLoading(false);
+  };
+
+  const handleSetNewPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword !== newPasswordConfirm) {
+      toast({ title: "Senhas não conferem", variant: "destructive" });
+      return;
+    }
+    if (newPassword.length < 6) {
+      toast({ title: "A senha deve ter ao menos 6 caracteres", variant: "destructive" });
+      return;
+    }
+    setLoading(true);
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    setLoading(false);
+    if (error) {
+      toast({ title: "Erro ao redefinir senha", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Senha redefinida com sucesso!" });
+      setRecoveryMode(false);
+      navigate("/");
+    }
   };
 
   const handleReset = async (e: React.FormEvent) => {
@@ -50,11 +88,58 @@ const Auth = () => {
       <div className="mb-8 text-center animate-fade-in">
         <img src="/favicon.png" alt="MedFollow" className="mx-auto mb-4 h-16 w-auto" />
         <h1 className="text-3xl font-bold text-foreground">MedFollow</h1>
-        <p className="mt-2 text-muted-foreground">{mode === "login" ? "Entre na sua conta" : "Redefinir senha"}</p>
+        <p className="mt-2 text-muted-foreground">{recoveryMode ? "Redefinir senha" : mode === "login" ? "Entre na sua conta" : "Redefinir senha"}</p>
       </div>
 
       <Card className="w-full max-w-md animate-fade-in">
-        {mode === "login" ? (
+        {recoveryMode ? (
+          <form onSubmit={handleSetNewPassword}>
+            <CardHeader>
+              <CardTitle>Criar nova senha</CardTitle>
+              <CardDescription>Defina sua nova senha de acesso</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="new-password">Nova senha</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="new-password"
+                    type="password"
+                    placeholder="Mínimo 6 caracteres"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    required
+                    className="pl-9"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="new-password-confirm">Confirmar nova senha</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="new-password-confirm"
+                    type="password"
+                    placeholder="Repita a nova senha"
+                    value={newPasswordConfirm}
+                    onChange={(e) => setNewPasswordConfirm(e.target.value)}
+                    required
+                    className="pl-9"
+                  />
+                </div>
+              </div>
+              {newPasswordConfirm.length > 0 && newPassword !== newPasswordConfirm && (
+                <p className="text-xs text-destructive">As senhas não conferem</p>
+              )}
+            </CardContent>
+            <CardFooter>
+              <Button type="submit" className="w-full" disabled={loading || newPassword.length < 6 || newPassword !== newPasswordConfirm}>
+                {loading ? "Salvando..." : "Salvar nova senha"}
+              </Button>
+            </CardFooter>
+          </form>
+        ) : mode === "login" ? (
           <form onSubmit={handleSubmit}>
             <CardHeader>
               <CardTitle>Login</CardTitle>

@@ -51,7 +51,7 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
     }
 
     const validCadastros = (data || []).filter(
-      (c) => c.cargo && VALID_ROLES.includes(c.cargo as RoleType)
+      (c) => c.cargo && VALID_ROLES.includes(c.cargo as RoleType) && c.ativo !== false
     );
 
     // For proprietário cadastros without clinica_id, resolve from clinicas table
