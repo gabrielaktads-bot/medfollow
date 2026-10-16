@@ -29,10 +29,12 @@ const RoleSwitcher = () => {
   const { cadastros, activeRole, switchRole } = useRole();
   const navigate = useNavigate();
 
-  // Filter out paciente since they have no access yet
-  const roles = cadastros
-    .map((c) => c.cargo as RoleType)
-    .filter((r) => ROLE_CONFIG[r]);
+  // One entry per role: a user can have several cadastros with the same cargo (e.g. medico in more than one clinic)
+  const roles = Array.from(new Set(
+    cadastros
+      .map((c) => c.cargo as RoleType)
+      .filter((r) => ROLE_CONFIG[r])
+  ));
 
   if (roles.length === 0 || !activeRole) return null;
 
